@@ -469,16 +469,57 @@
  (fn [[contacts chats account]]
    (chat.db/active-chats contacts chats account)))
 
-(reg-sub
+(defn enrich-current-one-to-one-chat
+  [{:keys [contact] :as current-chat}]
+  (let [{:keys [tribute-to-talk]} contact
+        {:keys [disabled?]} tribute-to-talk
+        whitelisted-by? (tribute-to-talk.db/whitelisted-by? contact)
+        loading? (and (not whitelisted-by?)
+                      (not tribute-to-talk))
+        show-header? (and (not loading?)
+                          (not disabled?))
+        show-input? (or whitelisted-by?
+                        disabled?)]
+    (cond-> (assoc-in current-chat
+                      [:contact :tribute-to-talk :status]
+                      (tribute-to-talk/tribute-status contact))
+
+      loading?
+      (assoc :tribute-to-talk/loading? true)
+
+      show-header?
+      (assoc :tribute-to-talk/show-header? true)
+
+      (tribute-to-talk/tribute-paid? contact)
+      (assoc :tribute-to-talk/paid? true)
+
+      show-input?
+      (assoc :show-input? true))))
+
+(re-frame/reg-sub
  :chats/current-chat
  :<- [:chats/active-chats]
  :<- [:chats/current-chat-id]
- (fn [[chats current-chat-id]]
-   (let [current-chat (get chats current-chat-id)
+ :<- [:account/public-key]
+ (fn [[chats current-chat-id my-public-key]]
+   (println :current-chat)
+   (let [{:keys [group-chat contact] :as current-chat}
+         (get chats current-chat-id)
          messages     (:messages current-chat)]
-     (if (empty? messages)
-       (assoc current-chat :universal-link (links/generate-link :public-chat :external current-chat-id))
-       current-chat))))
+     (cond-> current-chat
+       (empty? messages)
+       (assoc :universal-link
+              (links/generate-link :public-chat :external current-chat-id))
+
+       (models.chat/public-chat? current-chat)
+       (assoc :show-input? true)
+
+       (and (models.chat/group-chat? current-chat)
+            (group-chats.db/joined? my-public-key current-chat))
+       (assoc :show-input? true)
+
+       (not group-chat)
+       (enrich-current-one-to-one-chat)))))
 
 (reg-sub
  :chats/current-chat-message
