@@ -145,7 +145,7 @@ desktop-server:
 _run-%:
 	$(eval SYSTEM := $(word 2, $(subst -, , $@)))
 	@scripts/prepare-for-platform.sh $(SYSTEM) && \
-	react-native run-$(SYSTEM)
+	npx react-native run-$(SYSTEM)
 
 run-android: export TARGET_OS ?= android
 run-android: ##@run Run Android build
@@ -160,10 +160,10 @@ run-ios: export TARGET_OS ?= ios
 run-ios: ##@run Run iOS build
 ifneq ("$(SIMULATOR)", "")
 	@scripts/prepare-for-platform.sh ios && \
-	react-native run-ios --simulator="$(SIMULATOR)"
+	npx react-native run-ios --simulator="$(SIMULATOR)"
 else
 	@scripts/prepare-for-platform.sh ios && \
-	react-native run-ios
+	npx react-native run-ios
 endif
 
 #--------------

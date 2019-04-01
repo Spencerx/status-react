@@ -1,4 +1,4 @@
-{ stdenv, pkgs, target-os }:
+{ stdenv, pkgs, target-os, nodejs }:
 
 with pkgs;
 with stdenv;
