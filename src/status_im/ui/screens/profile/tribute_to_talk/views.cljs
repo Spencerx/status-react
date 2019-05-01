@@ -349,7 +349,7 @@
   (letsubs [current-account           [:account/account]
             {:keys [step snt-amount editing? message
                     fiat-value disable-button? state]}
-            [:tribute-to-talk/ui]]
+            [:tribute-to-talk/settings-ui]]
     [react/keyboard-avoiding-view {:style styles/container}
      [react/safe-area-view {:style {:flex 1}}
       [status-bar/status-bar]

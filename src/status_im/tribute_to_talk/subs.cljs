@@ -1,7 +1,10 @@
 (ns status-im.tribute-to-talk.subs
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame]
+            [status-im.i18n :as i18n]
             [status-im.tribute-to-talk.db :as tribute-to-talk]
+            [status-im.ui.components.colors :as colors]
+            [status-im.utils.config :as config]
             [status-im.utils.money :as money]))
 
 (re-frame/reg-sub
@@ -15,12 +18,53 @@
    (get-in db [:navigation/screen-params :tribute-to-talk])))
 
 (re-frame/reg-sub
- :tribute-to-talk/ui
+ :tribute-to-talk/profile
+ :<- [:tribute-to-talk/settings]
+ :<- [:tribute-to-talk/screen-params]
+ (fn [[{:keys [seen? snt-amount]}
+       {:keys [state hide?]}]]
+   (let [state (or state (if snt-amount :completed :disabled))
+         snt-amount (tribute-to-talk/from-wei snt-amount)]
+     (when (and config/tr-to-talk-enabled?
+                (not hide?))
+       (cond-> {:new? (not seen?)}
+         (and (not (and seen?
+                        snt-amount
+                        (#{:signing :pending :transaction-failed :completed} state))))
+         (assoc :subtext (i18n/label :t/tribute-to-talk-desc))
+
+         (#{:signing :pending} state)
+         (assoc :activity-indicator {:animating true
+                                     :color colors/blue}
+                :subtext (case state
+                           :pending (i18n/label :t/pending-confirmation)
+                           :signing (i18n/label :t/waiting-to-sign)))
+
+         (= state :transaction-failed)
+         (assoc :icon :main-icons/warning
+                :icon-color colors/red
+                :subtext (i18n/label :t/transaction-failed))
+
+         (not (#{:signing :pending :transaction-failed} state))
+         (assoc :icon :main-icons/tribute-to-talk)
+
+         (and (= state :completed)
+              (not-empty snt-amount))
+         (assoc :accessory-value (str snt-amount " SNT")))))))
+
+(re-frame/reg-sub
+ :tribute-to-talk/disabled?
+ :<- [:tribute-to-talk/settings]
+ (fn [{:keys [snt-amount]}]
+   (nil? snt-amount)))
+
+(re-frame/reg-sub
+ :tribute-to-talk/settings-ui
  :<- [:tribute-to-talk/settings]
  :<- [:tribute-to-talk/screen-params]
  :<- [:prices]
  :<- [:wallet/currency]
- (fn [[{:keys [seen? snt-amount message update]}
+ (fn [[{:keys [seen? snt-amount message]}
        {:keys [step editing? state error]
         :or {step :intro}
         screen-snt-amount :snt-amount

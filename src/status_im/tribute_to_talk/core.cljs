@@ -225,7 +225,9 @@
         (if-let [me? (= public-key
                         (get-in cofx [:db :account/account :public-key]))]
 
-          (update-settings cofx nil)
+          (fx/merge cofx
+                    {:db (assoc-in db [:navigation/screen-params :tribute-to-talk :hide?] true)}
+                    (update-settings nil))
           (contact/set-tribute cofx public-key nil)))))
 
 (fx/defn check-own-manifest

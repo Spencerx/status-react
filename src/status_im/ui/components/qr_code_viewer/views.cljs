@@ -13,7 +13,7 @@
 
 (defview qr-code-viewer-component [{:keys [style hint-style footer-style footer-button value hint legend]}]
   (letsubs  [{:keys [width]} [:dimensions/window]
-             {:keys [disabled?]} [:tribute-to-talk/ui]]
+             disabled? [:tribute-to-talk/disabled?]]
     [react/scroll-view {:content-container-style {:align-items       :center
                                                   :margin-top        16
                                                   :justify-content   :center}
