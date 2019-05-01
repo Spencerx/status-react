@@ -269,7 +269,7 @@
         all-tokens           (:wallet/all-tokens db)
         wallet-balance       (get-in db [:wallet :balance symbol])
         {:keys [decimals]}   (tokens/asset-for all-tokens chain symbol)
-        amount-text          (str snt-amount)
+        amount-text          (str (tribute-to-talk.db/from-wei snt-amount))
         {:keys [value]}      (wallet.db/parse-amount amount-text decimals)
         internal-value       (money/formatted->internal value symbol decimals)]
     (contracts/call cofx
@@ -281,6 +281,7 @@
                                 :from-chat?  true
                                 :symbol      symbol
                                 :amount-text amount-text
+                                :sufficient-funds? (money/sufficient-funds? snt-amount wallet-balance)
                                 :send-transaction-message? true}
                      :on-result [:tribute-to-talk.ui/on-tribute-transaction-sent
                                  public-key]})))

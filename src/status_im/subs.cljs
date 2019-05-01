@@ -1270,10 +1270,12 @@
     send-transaction
     edit)))
 
-(defn check-sufficient-funds [transaction balance symbol amount]
-  (assoc transaction :sufficient-funds?
-         (or (nil? amount)
-             (money/sufficient-funds? amount (get balance symbol)))))
+(defn check-sufficient-funds [{:keys [sufficient-funds?] :as transaction} balance symbol amount]
+  (cond-> transaction
+    (nil? sufficient-funds?)
+    (assoc :sufficient-funds?
+           (or (nil? amount)
+               (money/sufficient-funds? amount (get balance symbol))))))
 
 (defn check-sufficient-gas [transaction balance symbol amount]
   (assoc transaction :sufficient-gas?
