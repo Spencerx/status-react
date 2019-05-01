@@ -36,8 +36,10 @@
 
 (defn- valid-tribute-tx?
   [db snt-amount tribute-tx-id from-public-key]
-  (let [{:keys [value confirmations from]} (get-in db [:wallet :transactions tribute-tx-id])]
-    (and (pos? (js/parseInt (or confirmations "0")))
+  (let [{:keys [value confirmations from] :as transaction}
+        (get-in db [:wallet :transactions tribute-tx-id])]
+    (and transaction
+         (pos? (js/parseInt (or confirmations "0")))
          (<= snt-amount value)
          (= (ethereum/address= (contact.db/public-key->address from-public-key)
                                from)))))
@@ -93,13 +95,18 @@
   in the whitelist or there must be a valid tribute transaction id passed
   along the message"
   [{:keys [db] :as cofx} received-message-fx message-type tribute-tx-id from]
-  (if (not= :user-message message-type)
+  ;; if it is not a user-message or the user is whitelisted it passes
+  (if (or (not= :user-message message-type)
+          (contains? (:contacts/whitelist db) from))
     received-message-fx
-    (let [{:keys [snt-amount]} (get-settings db)
-          contact (get-in db [:contacts/contacts from])]
-      (when (or (not snt-amount)
-                ((:contacts/whitelist db) from)
-                (valid-tribute-tx? db snt-amount tribute-tx-id from))
-        (fx/merge cofx
-                  received-message-fx
-                  (mark-tribute-received from))))))
+    ;; if ttt is disabled it passes
+    (if-let [snt-amount (:snt-amount (get-settings db))]
+      (let [contact (get-in db [:contacts/contacts from])]
+        ;; if the tribute is not paid the message is dropped
+        ;; otherwise it passes and the user is added to the whitelist
+        ;; through system tags
+        (when (valid-tribute-tx? db snt-amount tribute-tx-id from)
+          (fx/merge cofx
+                    received-message-fx
+                    (mark-tribute-received from))))
+      received-message-fx)))
