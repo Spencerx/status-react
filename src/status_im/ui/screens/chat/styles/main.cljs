@@ -302,9 +302,10 @@
    :border-width       1
    :margin-top         4
    :border-color       colors/gray-lighter
-   :align-items        :center
+   :align-self         :flex-start
    :padding-vertical   12
-   :padding-horizontal 16})
+   :padding-horizontal 16
+   :margin-bottom      50})
 
 (def are-you-friends-text
   {:line-height 22
