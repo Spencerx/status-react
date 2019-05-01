@@ -2,6 +2,8 @@
   (:require [status-im.js-dependencies :as dependencies]
             [status-im.contact.db :as contact.db]
             [status-im.utils.fx :as fx]
+            [status-im.utils.money :as money]
+            [taoensso.timbre :as log]
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.data-store.contacts :as contacts-store]))
 
@@ -36,7 +38,7 @@
   [db snt-amount tribute-tx-id from-public-key]
   (let [{:keys [value confirmations from]} (get-in db [:wallet :transactions tribute-tx-id])]
     (and (pos? (js/parseInt (or confirmations "0")))
-         (<= snt-amount (/ value 1e18))
+         (<= snt-amount value)
          (= (ethereum/address= (contact.db/public-key->address from-public-key)
                                from)))))
 

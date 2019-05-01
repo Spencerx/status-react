@@ -478,7 +478,7 @@
 (defn enrich-current-one-to-one-chat
   [{:keys [contact] :as current-chat}]
   (let [{:keys [tribute-to-talk]} contact
-        {:keys [disabled?]} tribute-to-talk
+        {:keys [disabled? snt-amount]} tribute-to-talk
         whitelisted-by? (tribute-to-talk.db/whitelisted-by? contact)
         loading? (and (not whitelisted-by?)
                       (not tribute-to-talk))
@@ -494,7 +494,10 @@
       (assoc :tribute-to-talk/loading? true)
 
       show-header?
-      (assoc :tribute-to-talk/show-header? true)
+      (assoc :tribute-to-talk/show-header?
+             true
+             :tribute-to-talk/snt-amount
+             (tribute-to-talk.db/from-wei snt-amount))
 
       (tribute-to-talk/tribute-paid? contact)
       (assoc :tribute-to-talk/paid? true)
@@ -508,7 +511,6 @@
  :<- [:chats/current-chat-id]
  :<- [:account/public-key]
  (fn [[chats current-chat-id my-public-key]]
-   (println :current-chat)
    (let [{:keys [group-chat contact] :as current-chat}
          (get chats current-chat-id)
          messages     (:messages current-chat)]

@@ -280,8 +280,6 @@
                                 :public-key  public-key
                                 :from-chat?  true
                                 :symbol      symbol
-                                :sufficient-funds? (or (nil? snt-amount)
-                                                       (money/sufficient-funds? snt-amount wallet-balance))
                                 :amount-text amount-text
                                 :send-transaction-message? true}
                      :on-result [:tribute-to-talk.ui/on-tribute-transaction-sent

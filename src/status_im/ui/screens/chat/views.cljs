@@ -126,7 +126,7 @@
 
 (defn empty-chat-container-one-to-one
   [{:keys [chat-id name contact]
-    :tribute-to-talk/keys [paid? loading? show-header?]}
+    :tribute-to-talk/keys [paid? loading? show-header? snt-amount]}
    intro-name]
   (cond loading?
         [react/view (assoc (dissoc style/empty-chat-container :flex)
@@ -139,7 +139,7 @@
                                       :animating true}]]]]
 
         show-header?
-        (let [{:keys [snt-amount message status]} (:tribute-to-talk contact)]
+        (let [{:keys [message status]} (:tribute-to-talk contact)]
           [react/view
            [tribute-to-talk-header name]
            [react/view {:style {:align-items :flex-start
