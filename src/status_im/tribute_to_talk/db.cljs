@@ -19,6 +19,14 @@
   (when s
     (.fromWei utils s)))
 
+(defn valid?
+  [{:keys [snt-amount message]}]
+  (when (and (string? snt-amount)
+             (string? message))
+    (try (= (to-wei (from-wei snt-amount))
+            snt-amount)
+         (catch :default err nil))))
+
 (fx/defn add-to-whitelist
   "Add contact to whitelist"
   [{:keys [db]} public-key]

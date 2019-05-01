@@ -42,6 +42,7 @@
             [status-im.transport.core :as transport]
             [status-im.transport.message.core :as transport.message]
             [status-im.tribute-to-talk.core :as tribute-to-talk]
+            [status-im.tribute-to-talk.db :as tribute-to-talk.db]
             [status-im.ui.components.bottom-sheet.core :as bottom-sheet]
             [status-im.ui.components.react :as react]
             [status-im.ui.screens.add-new.new-chat.db :as new-chat.db]
@@ -1939,10 +1940,12 @@
 (handlers/register-handler-fx
  :tribute-to-talk.callback/fetch-manifest-success
  (fn [cofx  [_ public-key {:keys [tribute-to-talk]}]]
-   (if-let [me? (= public-key
-                   (get-in cofx [:db :account/account :public-key]))]
-     (tribute-to-talk/update-settings cofx tribute-to-talk)
-     (contact/set-tribute cofx public-key tribute-to-talk))))
+   (let [tribute-to-talk (when (tribute-to-talk.db/valid? tribute-to-talk)
+                           tribute-to-talk)]
+     (if-let [me? (= public-key
+                     (get-in cofx [:db :account/account :public-key]))]
+       (tribute-to-talk/update-settings cofx tribute-to-talk)
+       (contact/set-tribute cofx public-key tribute-to-talk)))))
 
 (handlers/register-handler-fx
  :tribute-to-talk.callback/fetch-manifest-failure
