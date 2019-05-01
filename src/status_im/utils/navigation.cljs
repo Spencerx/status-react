@@ -23,13 +23,14 @@
   (and @navigator-ref
        (not platform/desktop?)))
 
-(defn navigate-to [route]
+(defn navigate-to [route params]
   (when (can-be-called?)
     (.dispatch
      @navigator-ref
      (.navigate
       navigation-actions
-      #js {:routeName (name route)}))))
+      #js {:routeName (name route)
+           :params    (clj->js params)}))))
 
 (defn- navigate [params]
   (when (can-be-called?)
