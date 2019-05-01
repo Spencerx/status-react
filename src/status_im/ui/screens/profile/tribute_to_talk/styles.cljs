@@ -220,10 +220,17 @@
    :width             238
    :border-color      colors/gray-lighter})
 
-(def chat-sample-bubble
+(def chat-bubble
   {:background-color   colors/blue-light
    :padding-horizontal 12
-   :padding-top        8
+   :padding-vertical   6
+   :margin-top         4
+   :border-radius      8})
+
+(def pay-to-chat-bubble
+  {:background-color   colors/blue-light
+   :padding-horizontal 12
+   :padding-vertical   8
    :margin-top         4
    :border-radius      8})
 
@@ -234,8 +241,14 @@
    :height          44})
 
 (def pay-to-chat-text
-  {:typography :main-medium
-   :color      colors/blue})
+  {:color colors/blue})
+
+(def payment-status-container
+  {:justify-content :flex-start
+   :align-items     :center
+   :margin-top      16
+   :padding-bottom 2
+   :flex-direction  :row})
 
 (defn payment-status-icon [pending?]
   {:width 24

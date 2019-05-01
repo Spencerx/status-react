@@ -196,6 +196,22 @@
    :padding-vertical 50
    :margin-right     6})
 
+#_(defn intro-header-container
+    [height status no-messages]
+    (let [adjusted-height (if (< height 280) 324 height)]
+      (if (or no-messages (= status (or :loading :empty)))
+        {:flex               1
+         :flex-direction     :column
+         :justify-content    :center
+         :align-items        :center
+         :height             adjusted-height
+         :padding-horizontal 32}
+        {:flex               1
+         :flex-direction     :column
+         :justify-content    :center
+         :align-items        :center
+         :padding-horizontal 32})))
+
 (defn intro-header-container
   [height status no-messages]
   (let [adjusted-height (if (< height 280) 324 height)]
@@ -204,13 +220,11 @@
        :flex-direction     :column
        :justify-content    :center
        :align-items        :center
-       :height             adjusted-height
-       :padding-horizontal 32}
+       :height             adjusted-height}
       {:flex               1
        :flex-direction     :column
        :justify-content    :center
-       :align-items        :center
-       :padding-horizontal 32})))
+       :align-items        :center})))
 
 (defn intro-header-icon [diameter color]
   {:width            diameter
@@ -228,17 +242,19 @@
    :line-height 72})
 
 (def intro-header-chat-name
-  {:font-size     22
-   :font-weight   "700"
-   :line-height   28
-   :text-align    :center
-   :margin-bottom 8
-   :color         colors/black})
+  {:font-size         22
+   :font-weight       "700"
+   :line-height       28
+   :text-align        :center
+   :margin-bottom     8
+   :margin-horizontal 32
+   :color             colors/black})
 
 (def intro-header-description-container
-  {:flex-wrap      :wrap
-   :align-items    :flex-start
-   :flex-direction :row})
+  {:flex-wrap         :wrap
+   :align-items       :flex-start
+   :flex-direction    :row
+   :margin-horizontal 32})
 
 (def loading-text
   {:color          colors/gray
@@ -252,9 +268,10 @@
   {:margin-bottom 5})
 
 (def intro-header-description
-  {:color         colors/gray
-   :line-height   22
-   :text-align    :center})
+  {:color             colors/gray
+   :line-height       22
+   :text-align        :center
+   :margin-horizontal 32})
 
 (def group-chat-icon
   {:color       colors/white

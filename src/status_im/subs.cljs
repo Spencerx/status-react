@@ -505,16 +505,35 @@
       show-input?
       (assoc :show-input? true))))
 
+(defn enrich-current-chat
+  [{:keys [messages chat-id might-have-join-time-messages?] :as chat}
+   ranges height input-height]
+  (assoc chat
+         :height height
+         :input-height input-height
+         :range
+         (get ranges chat-id)
+         :intro-status
+         (if might-have-join-time-messages?
+           :loading
+           (if (empty? messages)
+             :empty
+             :messages))))
+
 (re-frame/reg-sub
  :chats/current-chat
  :<- [:chats/active-chats]
  :<- [:chats/current-chat-id]
  :<- [:account/public-key]
- (fn [[chats current-chat-id my-public-key]]
-   (let [{:keys [group-chat contact] :as current-chat}
-         (get chats current-chat-id)
-         messages     (:messages current-chat)]
-     (cond-> current-chat
+ :<- [:mailserver/ranges]
+ :<- [:chats/content-layout-height]
+ :<- [:chats/current-chat-ui-prop :input-height]
+ (fn [[chats current-chat-id my-public-key ranges height input-height]]
+   (let [{:keys [group-chat contact might-have-join-time-messages? messages]
+          :as current-chat}
+         (get chats current-chat-id)]
+     (cond-> (enrich-current-chat current-chat ranges height input-height)
+
        (empty? messages)
        (assoc :universal-link
               (links/generate-link :public-chat :external current-chat-id))
@@ -602,17 +621,6 @@
         messages message-statuses referenced-messages
         messages-gaps range all-loaded? public?)
        chat.db/messages-stream)))
-
-(reg-sub
- :chats/current-chat-intro-status
- :<- [:chats/current-chat]
- :<- [:chats/current-chat-messages]
- (fn [[{:keys [might-have-join-time-messages?]} messages]]
-   (if might-have-join-time-messages?
-     :loading
-     (if (empty? messages)
-       :empty
-       :messages))))
 
 (reg-sub
  :chats/available-commands

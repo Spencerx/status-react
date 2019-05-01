@@ -113,68 +113,18 @@
 
 (defn tribute-to-talk-header
   [name]
-  [react/view (assoc (dissoc style/empty-chat-container :flex)
-                     :justify-content :flex-end)
-   [react/view {:style {:align-items :center :justify-content :flex-end}}
-    [react/nested-text {:style (assoc style/intro-header-description
-                                      :margin-top 24)}
-     [{:style (assoc style/intro-header-description :margin-top 24)}
-      (i18n/label :t/tribute-required-by-account {:account-name name})]
-     [{:style {:color colors/blue}
-       :on-press #(re-frame/dispatch [:navigate-to :tribute-learn-more])}
-      (str " " (i18n/label :learn-more))]]]])
+  [react/nested-text {:style (assoc style/intro-header-description
+                                    :margin-bottom 32)}
+   (i18n/label :t/tribute-required-by-account {:account-name name})
+   [{:style {:color colors/blue}
+     :on-press #(re-frame/dispatch [:navigate-to :tribute-learn-more])}
+    (str " " (i18n/label :learn-more))]])
 
-(defn empty-chat-container-one-to-one
-  [{:keys [chat-id name contact]
-    :tribute-to-talk/keys [paid? loading? show-header? snt-amount]}
-   intro-name]
-  (cond loading?
-        [react/view (assoc (dissoc style/empty-chat-container :flex)
-                           :justify-content :flex-end)
-         [react/view {:style {:align-items :center :justify-content :flex-end}}
-          [react/view {:style {:flex-direction :row :justify-content :center}}
-           [react/text {:style style/loading-text}
-            (i18n/label :t/loading)]
-           [react/activity-indicator {:color colors/gray
-                                      :animating true}]]]]
-
-        show-header?
-        (let [{:keys [message status]} (:tribute-to-talk contact)]
-          [react/view
-           [tribute-to-talk-header name]
-           [react/view {:style {:align-items :flex-start
-                                :margin-top 32
-                                :margin-left 8}}
-            [tribute-to-talk.views/pay-to-chat-message
-             {:snt-amount snt-amount
-              :personalized-message message
-              :public-key chat-id
-              :tribute-status status}]
-            [react/view {:style style/are-you-friends-bubble}
-             [react/text {:style (assoc style/are-you-friends-text
-                                        :font-weight "500")}
-              (i18n/label :t/tribute-to-talk-are-you-friends)]
-             [react/text {:style style/are-you-friends-text}
-              (i18n/label :t/tribute-to-talk-ask-to-be-added)]
-             [react/text {:style style/share-my-profile
-                          :on-press #(re-frame/dispatch
-                                      [:profile/share-profile-link chat-id])}
-              (i18n/label :t/share-my-profile)]]
-            (when paid?
-              [react/view
-               [react/nested-text {:style style/tribute-received-note}
-                [{:style (assoc style/tribute-received-note :font-weight "500")}
-                 name]
-                [{:style (assoc style/tribute-received-note :color colors/gray)}
-                 (i18n/label :tribute-to-talk-contact-received-your-tribute)]]])]])
-
-        :else
-        [react/view (assoc (dissoc style/empty-chat-container :flex)
-                           :justify-content :flex-end)
-         [react/nested-text {:style (merge style/intro-header-description
-                                           {:margin-bottom 36})}
-          (i18n/label :t/empty-chat-description-one-to-one)
-          [{} intro-name]]]))
+(defn intro-header
+  [name]
+  [react/text {:style (assoc style/intro-header-description
+                             :margin-bottom 32)}
+   (str (i18n/label :t/empty-chat-description-one-to-one) name)])
 
 (defn join-chat-button [chat-id]
   [buttons/secondary-button
@@ -214,93 +164,148 @@
      [join-chat-button chat-id]
      [decline-chat chat-id]]]])
 
-;; TODO refactor this big view into chunks
-(defview chat-intro-header-container
+(defn group-chat-description-loading
+  []
+  [react/view {:style (merge style/intro-header-description-container
+                             {:margin-bottom 36
+                              :height        44})}
+   [react/text {:style style/intro-header-description}
+    (i18n/label :t/loading)]
+   [react/activity-indicator {:animating true
+                              :size      :small
+                              :color     colors/gray}]])
+
+(defn group-chat-description-container
   [{:keys [group-chat name pending-invite-inviter-name
            inviter-name color chat-id chat-name public?
-           contact universal-link] :as chat} no-messages]
-  (letsubs [intro-status [:chats/current-chat-intro-status]
-            height       [:chats/content-layout-height]
-            input-height [:chats/current-chat-ui-prop :input-height]
-            {:keys [:lowest-request-from :highest-request-to]} [:chats/range]]
-    (let [icon-text  (if public? chat-id name)
-          intro-name (if public? chat-name name)]
-      ;; TODO This when check ought to be unnecessary but for now it prevents
-      ;; jerky motion when fresh chat is created, when input-height can be null
-      ;; affecting the calculation of content-layout-height to be briefly adjusted
-      (when (or input-height pending-invite-inviter-name
-                (not= (get-in contact [:tribute-to-talk :snt-amount]) 0))
-        [react/touchable-without-feedback
-         {:style    {:flex        1
-                     :align-items :flex-start}
-          :on-press (fn [_]
-                      (re-frame/dispatch
-                       [:chat.ui/set-chat-ui-props {:messages-focused? true
-                                                    :show-stickers?    false}])
-                      (react/dismiss-keyboard!))}
-         [react/view
-          (style/intro-header-container height intro-status no-messages)
-          ;; Icon section
-          [react/view {:style {:margin-top    42
-                               :margin-bottom 24}}
-           [chat-icon.screen/chat-intro-icon-view
-            icon-text chat-id
-            {:default-chat-icon      (style/intro-header-icon 120 color)
-             :default-chat-icon-text style/intro-header-icon-text
-             :size                   120}]]
-          ;; Chat title section
-          [react/text {:style style/intro-header-chat-name} intro-name]
-          ;; Description section
-          (if group-chat
-            (cond
-              (= intro-status :loading)
-              [react/view {:style (merge style/intro-header-description-container
-                                         {:margin-bottom 36
-                                          :height        44})}
-               [react/text {:style style/intro-header-description}
-                (i18n/label :t/loading)]
-               [react/activity-indicator {:animating true
-                                          :size      :small
-                                          :color     colors/gray}]]
+           contact universal-link range intro-status] :as chat}]
+  (let [{:keys [lowest-request-from highest-request-to]} range]
+    (case intro-status
+      :loading
+      [group-chat-description-loading]
 
-              (= intro-status :empty)
-              (when public?
-                [react/nested-text {:style (merge style/intro-header-description
-                                                  {:margin-bottom 36})}
-                 (let [quiet-hours (quot (- highest-request-to lowest-request-from)
-                                         (* 60 60))
-                       quiet-time  (if (<= quiet-hours 24)
-                                     (i18n/label :t/quiet-hours
-                                                 {:quiet-hours quiet-hours})
-                                     (i18n/label :t/quiet-days
-                                                 {:quiet-days (quot quiet-hours 24)}))]
-                   (i18n/label :t/empty-chat-description-public
-                               {:quiet-hours quiet-time}))
-                 [{:style    {:color colors/blue}
-                   :on-press #(list-selection/open-share
-                               {:message
-                                (i18n/label
-                                 :t/share-public-chat-text {:link universal-link})})}
-                  (i18n/label :t/empty-chat-description-public-share-this)]])
+      :empty
+      (when public?
+        [react/nested-text {:style (merge style/intro-header-description
+                                          {:margin-bottom 36})}
+         (let [quiet-hours (quot (- highest-request-to lowest-request-from)
+                                 (* 60 60))
+               quiet-time  (if (<= quiet-hours 24)
+                             (i18n/label :t/quiet-hours
+                                         {:quiet-hours quiet-hours})
+                             (i18n/label :t/quiet-days
+                                         {:quiet-days (quot quiet-hours 24)}))]
+           (i18n/label :t/empty-chat-description-public
+                       {:quiet-hours quiet-time}))
+         [{:style    {:color colors/blue}
+           :on-press #(list-selection/open-share
+                       {:message
+                        (i18n/label
+                         :t/share-public-chat-text {:link universal-link})})}
+          (i18n/label :t/empty-chat-description-public-share-this)]])
 
-              (= intro-status :messages)
-              (when (not public?)
-                (if pending-invite-inviter-name
-                  [react/nested-text {:style style/intro-header-description}
-                   [{:style {:color :black}} pending-invite-inviter-name]
-                   (i18n/label :t/join-group-chat-description
-                               {:username   ""
-                                :group-name intro-name})]
-                  (if (not= inviter-name "Unknown")
-                    [react/nested-text {:style style/intro-header-description}
-                     (i18n/label :t/joined-group-chat-description
-                                 {:username   ""
-                                  :group-name intro-name})
-                     [{:style {:color :black}} inviter-name]]
-                    [react/text {:style style/intro-header-description}
-                     (i18n/label :t/created-group-chat-description
-                                 {:group-name intro-name})]))))
-            [empty-chat-container-one-to-one chat intro-name])]]))))
+      :messages
+      (when (not public?)
+        (if pending-invite-inviter-name
+          [react/nested-text {:style style/intro-header-description}
+           [{:style {:color :black}} pending-invite-inviter-name]
+           (i18n/label :t/join-group-chat-description
+                       {:username   ""
+                        :group-name chat-name})]
+          (if (not= inviter-name "Unknown")
+            [react/nested-text {:style style/intro-header-description}
+             (i18n/label :t/joined-group-chat-description
+                         {:username   ""
+                          :group-name chat-name})
+             [{:style {:color :black}} inviter-name]]
+            [react/text {:style style/intro-header-description}
+             (i18n/label :t/created-group-chat-description
+                         {:group-name chat-name})]))))))
+
+(defn one-to-one-chat-description-container
+  [{:keys [chat-id name contact show-input?]
+    :tribute-to-talk/keys [paid? loading? show-header? snt-amount]}]
+  (cond loading?
+        [react/view (assoc (dissoc style/empty-chat-container :flex)
+                           :justify-content :flex-end)
+         [react/view {:style {:align-items :center :justify-content :flex-end}}
+          [react/view {:style {:flex-direction :row :justify-content :center}}
+           [react/text {:style style/loading-text}
+            (i18n/label :t/loading)]
+           [react/activity-indicator {:color colors/gray
+                                      :animating true}]]]]
+
+        show-header?
+        (let [{:keys [message status]} (:tribute-to-talk contact)]
+          [react/view
+           (if paid?
+             [intro-header name]
+             [tribute-to-talk-header name])
+           [tribute-to-talk.views/pay-to-chat-message
+            {:snt-amount snt-amount
+             :personalized-message message
+             :public-key chat-id
+             :tribute-status status
+             :style {:margin-horizontal 8
+                     :align-self :flex-start}}]
+           (when-not show-input?
+             [react/view {:style style/are-you-friends-bubble}
+              [react/text {:style (assoc style/are-you-friends-text
+                                         :font-weight "500")}
+               (i18n/label :t/tribute-to-talk-are-you-friends)]
+              [react/text {:style style/are-you-friends-text}
+               (i18n/label :t/tribute-to-talk-ask-to-be-added)]
+              [react/text {:style style/share-my-profile
+                           :on-press #(re-frame/dispatch
+                                       [:profile/share-profile-link chat-id])}
+               (i18n/label :t/share-my-profile)]])
+           (when paid?
+             [react/view {:style {:margin-top 16}}
+              [react/nested-text {:style style/tribute-received-note}
+               [{:style (assoc style/tribute-received-note :font-weight "500")}
+                name]
+               [{:style (assoc style/tribute-received-note :color colors/gray)}
+                (i18n/label :tribute-to-talk-contact-received-your-tribute)]]])])
+
+        :else
+        [intro-header name]))
+
+(defn chat-intro-header-container
+  [{:keys [group-chat name pending-invite-inviter-name
+           inviter-name color chat-id chat-name public?
+           contact universal-link intro-status height input-height] :as chat}
+   no-messages]
+  (let [icon-text  (if public? chat-id name)
+        intro-name (if public? chat-name name)]
+    ;; TODO This when check ought to be unnecessary but for now it prevents
+    ;; jerky motion when fresh chat is created, when input-height can be null
+    ;; affecting the calculation of content-layout-height to be briefly adjusted
+    (when (or input-height
+              pending-invite-inviter-name
+              (not= (get-in contact [:tribute-to-talk :snt-amount]) 0))
+      [react/touchable-without-feedback
+       {:style    {:flex        1
+                   :align-items :flex-start}
+        :on-press (fn [_]
+                    (re-frame/dispatch
+                     [:chat.ui/set-chat-ui-props {:messages-focused? true
+                                                  :show-stickers?    false}])
+                    (react/dismiss-keyboard!))}
+       [react/view (style/intro-header-container height intro-status no-messages)
+        ;; Icon section
+        [react/view {:style {:margin-top    42
+                             :margin-bottom 24}}
+         [chat-icon.screen/chat-intro-icon-view
+          icon-text chat-id
+          {:default-chat-icon      (style/intro-header-icon 120 color)
+           :default-chat-icon-text style/intro-header-icon-text
+           :size                   120}]]
+        ;; Chat title section
+        [react/text {:style style/intro-header-chat-name} intro-name]
+        ;; Description section
+        (if group-chat
+          [group-chat-description-container chat]
+          [one-to-one-chat-description-container chat])]])))
 
 (defonce messages-list-ref (atom nil))
 
