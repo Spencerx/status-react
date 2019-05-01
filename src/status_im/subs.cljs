@@ -476,31 +476,29 @@
    (chat.db/active-chats contacts chats account)))
 
 (defn enrich-current-one-to-one-chat
-  [{:keys [contact] :as current-chat}]
+  [{:keys [contact] :as current-chat} my-public-key]
   (let [{:keys [tribute-to-talk]} contact
-        {:keys [disabled? snt-amount]} tribute-to-talk
+        {:keys [disabled? snt-amount message]} tribute-to-talk
         whitelisted-by? (tribute-to-talk.db/whitelisted-by? contact)
-        loading? (and (not whitelisted-by?)
-                      (not tribute-to-talk))
-        show-header? (and (not loading?)
-                          (not disabled?))
-        show-input? (or whitelisted-by?
-                        disabled?)]
-    (cond-> (assoc-in current-chat
-                      [:contact :tribute-to-talk :status]
-                      (tribute-to-talk/tribute-status contact))
+        loading?        (and (not whitelisted-by?)
+                             (not tribute-to-talk))
+        show-input?     (or whitelisted-by?
+                            disabled?)
+        tribute-status  (if loading?
+                          :loading
+                          (tribute-to-talk/tribute-status contact))]
+    (cond-> (assoc current-chat :tribute-to-talk/tribute-status tribute-status)
 
-      loading?
-      (assoc :tribute-to-talk/loading? true)
+      (#{:required :pending :paid} tribute-status)
+      (assoc :tribute-to-talk/snt-amount
+             (tribute-to-talk.db/from-wei snt-amount)
+             :tribute-to-talk/message
+             message)
 
-      show-header?
-      (assoc :tribute-to-talk/show-header?
-             true
-             :tribute-to-talk/snt-amount
-             (tribute-to-talk.db/from-wei snt-amount))
-
-      (tribute-to-talk/tribute-paid? contact)
-      (assoc :tribute-to-talk/paid? true)
+      (= tribute-status :required)
+      (assoc :tribute-to-talk/on-share-my-profile
+             #(re-frame/dispatch
+               [:profile/share-profile-link current-public-key]))
 
       show-input?
       (assoc :show-input? true))))
@@ -546,7 +544,7 @@
        (assoc :show-input? true)
 
        (not group-chat)
-       (enrich-current-one-to-one-chat)))))
+       (enrich-current-one-to-one-chat my-public-key)))))
 
 (reg-sub
  :chats/current-chat-message

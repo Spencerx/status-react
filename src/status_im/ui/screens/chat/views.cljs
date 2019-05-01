@@ -222,53 +222,61 @@
              (i18n/label :t/created-group-chat-description
                          {:group-name chat-name})]))))))
 
+(defn pay-to-chat-messages
+  [snt-amount message chat-id tribute-status]
+  [tribute-to-talk.views/pay-to-chat-message
+   {:snt-amount snt-amount
+    :personalized-message message
+    :public-key chat-id
+    :tribute-status tribute-status
+    :style {:margin-horizontal 8
+            :align-self :flex-start}}])
+
 (defn one-to-one-chat-description-container
-  [{:keys [chat-id name contact show-input?]
-    :tribute-to-talk/keys [paid? loading? show-header? snt-amount]}]
-  (cond loading?
-        [react/view (assoc (dissoc style/empty-chat-container :flex)
-                           :justify-content :flex-end)
-         [react/view {:style {:align-items :center :justify-content :flex-end}}
-          [react/view {:style {:flex-direction :row :justify-content :center}}
-           [react/text {:style style/loading-text}
-            (i18n/label :t/loading)]
-           [react/activity-indicator {:color colors/gray
-                                      :animating true}]]]]
+  [{:keys [chat-id name contact show-input? tribute-to-talk]
+    :tribute-to-talk/keys [message tribute-status snt-amount on-share-my-profile]}]
+  (case tribute-status
+    :loading
+    [react/view (assoc (dissoc style/empty-chat-container :flex)
+                       :justify-content :flex-end)
+     [react/view {:style {:align-items :center :justify-content :flex-end}}
+      [react/view {:style {:flex-direction :row :justify-content :center}}
+       [react/text {:style style/loading-text}
+        (i18n/label :t/loading)]
+       [react/activity-indicator {:color colors/gray
+                                  :animating true}]]]]
 
-        show-header?
-        (let [{:keys [message status]} (:tribute-to-talk contact)]
-          [react/view
-           (if paid?
-             [intro-header name]
-             [tribute-to-talk-header name])
-           [tribute-to-talk.views/pay-to-chat-message
-            {:snt-amount snt-amount
-             :personalized-message message
-             :public-key chat-id
-             :tribute-status status
-             :style {:margin-horizontal 8
-                     :align-self :flex-start}}]
-           (when-not show-input?
-             [react/view {:style style/are-you-friends-bubble}
-              [react/text {:style (assoc style/are-you-friends-text
-                                         :font-weight "500")}
-               (i18n/label :t/tribute-to-talk-are-you-friends)]
-              [react/text {:style style/are-you-friends-text}
-               (i18n/label :t/tribute-to-talk-ask-to-be-added)]
-              [react/text {:style style/share-my-profile
-                           :on-press #(re-frame/dispatch
-                                       [:profile/share-profile-link chat-id])}
-               (i18n/label :t/share-my-profile)]])
-           (when paid?
-             [react/view {:style {:margin-top 16}}
-              [react/nested-text {:style style/tribute-received-note}
-               [{:style (assoc style/tribute-received-note :font-weight "500")}
-                name]
-               [{:style (assoc style/tribute-received-note :color colors/gray)}
-                (i18n/label :tribute-to-talk-contact-received-your-tribute)]]])])
+    :required
+    [react/view
+     [tribute-to-talk-header name]
+     [pay-to-chat-messages snt-amount message chat-id tribute-status]
+     [react/view {:style style/are-you-friends-bubble}
+      [react/text {:style (assoc style/are-you-friends-text
+                                 :font-weight "500")}
+       (i18n/label :t/tribute-to-talk-are-you-friends)]
+      [react/text {:style style/are-you-friends-text}
+       (i18n/label :t/tribute-to-talk-ask-to-be-added)]
+      [react/text {:style style/share-my-profile
+                   :on-press on-share-my-profile}
+       (i18n/label :t/share-my-profile)]]]
 
-        :else
-        [intro-header name]))
+    :pending
+    [react/view
+     [tribute-to-talk-header name]
+     [pay-to-chat-messages snt-amount message chat-id tribute-status]]
+
+    :paid
+    [react/view
+     [intro-header name]
+     [pay-to-chat-messages snt-amount message chat-id tribute-status]
+     [react/view {:style {:margin-top 16}}
+      [react/nested-text {:style style/tribute-received-note}
+       [{:style (assoc style/tribute-received-note :font-weight "500")}
+        name]
+       [{:style (assoc style/tribute-received-note :color colors/gray)}
+        (i18n/label :tribute-to-talk-contact-received-your-tribute)]]]]
+
+    [intro-header name]))
 
 (defn chat-intro-header-container
   [{:keys [group-chat name pending-invite-inviter-name
