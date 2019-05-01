@@ -498,7 +498,7 @@
       (= tribute-status :required)
       (assoc :tribute-to-talk/on-share-my-profile
              #(re-frame/dispatch
-               [:profile/share-profile-link current-public-key]))
+               [:profile/share-profile-link my-public-key]))
 
       show-input?
       (assoc :show-input? true))))
@@ -527,7 +527,7 @@
  :<- [:chats/content-layout-height]
  :<- [:chats/current-chat-ui-prop :input-height]
  (fn [[chats current-chat-id my-public-key ranges height input-height]]
-   (let [{:keys [group-chat contact might-have-join-time-messages? messages]
+   (let [{:keys [group-chat contact messages]
           :as current-chat}
          (get chats current-chat-id)]
      (cond-> (enrich-current-chat current-chat ranges height input-height)
