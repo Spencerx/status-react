@@ -226,7 +226,7 @@
                         (get-in cofx [:db :account/account :public-key]))]
 
           (fx/merge cofx
-                    {:db (assoc-in db [:navigation/screen-params :tribute-to-talk :hide?] true)}
+                    {:db (assoc-in db [:navigation/screen-params :tribute-to-talk :unavailable?] true)}
                     (update-settings nil))
           (contact/set-tribute cofx public-key nil)))))
 

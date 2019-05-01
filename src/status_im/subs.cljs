@@ -22,6 +22,12 @@
             [status-im.chat.commands.input :as commands.input]
             [status-im.chat.commands.core :as commands]
             [status-im.chat.constants :as chat.constants]
+            [status-im.chat.models :as chat.models]
+
+            [status-im.group-chats.db :as group-chats.db]
+
+            [status-im.tribute-to-talk.core :as tribute-to-talk]
+            [status-im.tribute-to-talk.db :as tribute-to-talk.db]
 
             [status-im.ui.components.toolbar.styles :as toolbar.styles]
             [status-im.ui.components.bottom-bar.styles :as tabs.styles]
@@ -511,10 +517,10 @@
        (assoc :universal-link
               (links/generate-link :public-chat :external current-chat-id))
 
-       (models.chat/public-chat? current-chat)
+       (chat.models/public-chat? current-chat)
        (assoc :show-input? true)
 
-       (and (models.chat/group-chat? current-chat)
+       (and (chat.models/group-chat? current-chat)
             (group-chats.db/joined? my-public-key current-chat))
        (assoc :show-input? true)
 

@@ -15,7 +15,6 @@
             [status-im.ui.components.list.views :as list]
             [status-im.ui.components.react :as react]
             [status-im.ui.components.svgimage :as svgimage]
-            [status-im.ui.screens.currency-settings.subs :as currency-settings.subs]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.ui.screens.wallet.choose-recipient.events
              :as

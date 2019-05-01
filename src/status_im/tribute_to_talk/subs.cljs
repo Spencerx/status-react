@@ -22,35 +22,39 @@
  :<- [:tribute-to-talk/settings]
  :<- [:tribute-to-talk/screen-params]
  (fn [[{:keys [seen? snt-amount]}
-       {:keys [state hide?]}]]
+       {:keys [state unavailable?]}]]
    (let [state (or state (if snt-amount :completed :disabled))
          snt-amount (tribute-to-talk/from-wei snt-amount)]
-     (when (and config/tr-to-talk-enabled?
-                (not hide?))
-       (cond-> {:new? (not seen?)}
-         (and (not (and seen?
-                        snt-amount
-                        (#{:signing :pending :transaction-failed :completed} state))))
-         (assoc :subtext (i18n/label :t/tribute-to-talk-desc))
+     (when config/tr-to-talk-enabled?
+       (if unavailable?
+         {:subtext "Change network to enable Tribute to Talk"
+          :active? false
+          :icon :main-icons/tribute-to-talk
+          :icon-color colors/gray}
+         (cond-> {:new? (not seen?)}
+           (and (not (and seen?
+                          snt-amount
+                          (#{:signing :pending :transaction-failed :completed} state))))
+           (assoc :subtext (i18n/label :t/tribute-to-talk-desc))
 
-         (#{:signing :pending} state)
-         (assoc :activity-indicator {:animating true
-                                     :color colors/blue}
-                :subtext (case state
-                           :pending (i18n/label :t/pending-confirmation)
-                           :signing (i18n/label :t/waiting-to-sign)))
+           (#{:signing :pending} state)
+           (assoc :activity-indicator {:animating true
+                                       :color colors/blue}
+                  :subtext (case state
+                             :pending (i18n/label :t/pending-confirmation)
+                             :signing (i18n/label :t/waiting-to-sign)))
 
-         (= state :transaction-failed)
-         (assoc :icon :main-icons/warning
-                :icon-color colors/red
-                :subtext (i18n/label :t/transaction-failed))
+           (= state :transaction-failed)
+           (assoc :icon :main-icons/warning
+                  :icon-color colors/red
+                  :subtext (i18n/label :t/transaction-failed))
 
-         (not (#{:signing :pending :transaction-failed} state))
-         (assoc :icon :main-icons/tribute-to-talk)
+           (not (#{:signing :pending :transaction-failed} state))
+           (assoc :icon :main-icons/tribute-to-talk)
 
-         (and (= state :completed)
-              (not-empty snt-amount))
-         (assoc :accessory-value (str snt-amount " SNT")))))))
+           (and (= state :completed)
+                (not-empty snt-amount))
+           (assoc :accessory-value (str snt-amount " SNT"))))))))
 
 (re-frame/reg-sub
  :tribute-to-talk/disabled?
