@@ -1146,6 +1146,16 @@
    (hardwallet/on-delete-error cofx error)))
 
 (handlers/register-handler-fx
+ :hardwallet.callback/on-remove-key-success
+ (fn [cofx _]
+   (hardwallet/on-remove-key-success cofx)))
+
+(handlers/register-handler-fx
+ :hardwallet.callback/on-remove-key-error
+ (fn [cofx [_ error]]
+   (hardwallet/on-remove-key-error cofx error)))
+
+(handlers/register-handler-fx
  :hardwallet.callback/on-get-keys-success
  (fn [cofx [_ data]]
    (hardwallet/on-get-keys-success cofx data)))
@@ -1336,6 +1346,11 @@
    (hardwallet/card-ready-next-button-pressed cofx)))
 
 (handlers/register-handler-fx
+ :hardwallet/proceed-to-generate-mnemonic
+ (fn [cofx _]
+   (hardwallet/proceed-to-generate-mnemonic cofx)))
+
+(handlers/register-handler-fx
  :hardwallet/generate-mnemonic
  (fn [cofx _]
    (hardwallet/generate-mnemonic cofx)))
@@ -1383,6 +1398,11 @@
    (hardwallet/unpair cofx)))
 
 (handlers/register-handler-fx
+ :hardwallet/verify-pin
+ (fn [cofx _]
+   (hardwallet/verify-pin cofx)))
+
+(handlers/register-handler-fx
  :keycard-settings.ui/reset-card-pressed
  (fn [cofx _]
    (hardwallet/reset-card-pressed cofx)))
@@ -1401,6 +1421,11 @@
  :hardwallet/unpair-and-delete
  (fn [cofx _]
    (hardwallet/unpair-and-delete cofx)))
+
+(handlers/register-handler-fx
+ :hardwallet/remove-key-with-unpair
+ (fn [cofx _]
+   (hardwallet/remove-key-with-unpair cofx)))
 
 (handlers/register-handler-fx
  :hardwallet/navigate-to-enter-pin-screen
