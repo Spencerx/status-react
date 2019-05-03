@@ -235,20 +235,14 @@
    :border-radius      8})
 
 (def pay-to-chat-container
-  {:justify-content :flex-start
+  {:justify-content :center
    :align-items     :center
    :flex-direction  :row
-   :height          44})
+   :padding-top     12
+   :padding-bottom  4})
 
 (def pay-to-chat-text
-  {:color colors/blue})
-
-(def payment-status-container
-  {:justify-content :flex-start
-   :align-items     :center
-   :margin-top      16
-   :padding-bottom 2
-   :flex-direction  :row})
+  {:color      colors/blue})
 
 (defn payment-status-icon [pending?]
   {:width 24

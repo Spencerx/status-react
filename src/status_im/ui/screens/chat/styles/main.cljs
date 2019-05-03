@@ -304,6 +304,7 @@
    :border-color       colors/gray-lighter
    :align-self         :flex-start
    :padding-vertical   12
+   :margin-horizontal  8
    :padding-horizontal 16
    :margin-bottom      50})
 

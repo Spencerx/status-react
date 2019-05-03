@@ -302,7 +302,7 @@
                                 #(re-frame/dispatch [:tribute-to-talk.ui/on-pay-to-chat-pressed
                                                      public-key])))
             (i18n/label :t/pay-to-chat)]]
-          [react/view {:style styles/payment-status-container}
+          [react/view {:style styles/pay-to-chat-container}
            [react/view {:style (styles/payment-status-icon (= tribute-status :pending))}
             [icons/icon (if (= tribute-status :pending) :tiny-icons/tiny-pending :tiny-icons/tiny-check)
              {:color (if (= tribute-status :pending) colors/black colors/white)}]]
@@ -331,14 +331,16 @@
     [pay-to-chat-message {:snt-amount 1000
                           :personalized-message
                           (i18n/label :t/tribute-to-talk-sample-text)
-                          :style (assoc styles/learn-more-section :margin-top 24)}]
+                          :style (assoc styles/learn-more-section
+                                        :align-items :flex-start
+                                        :margin-top 24)}]
     [react/view {:style styles/learn-more-text-container-2}
      [react/text {:style styles/learn-more-text}
       (i18n/label (if owner? :t/tribute-to-talk-learn-more-2
                       :t/tribute-to-talk-paywall-learn-more-2))]]
     [react/view {:style (assoc styles/learn-more-section
                                :flex-direction     :row
-                               :align-item         :flex-stretch
+                               :align-items        :stretch
                                :padding-horizontal 16
                                :padding-vertical   12)}
      [react/view {:style (styles/icon-view colors/blue-light)}

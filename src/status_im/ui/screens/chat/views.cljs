@@ -230,7 +230,8 @@
     :public-key chat-id
     :tribute-status tribute-status
     :style {:margin-horizontal 8
-            :align-self (if snt-amount :flex-start :flex-end)}}])
+            :align-items       :flex-start
+            :align-self        (if snt-amount :flex-start :flex-end)}}])
 
 (defn one-to-one-chat-description-container
   [{:keys [chat-id name contact show-input? tribute-to-talk]
