@@ -57,10 +57,10 @@
            (assoc :accessory-value (str snt-amount " SNT"))))))))
 
 (re-frame/reg-sub
- :tribute-to-talk/disabled?
+ :tribute-to-talk/enabled?
  :<- [:tribute-to-talk/settings]
- (fn [{:keys [snt-amount]}]
-   (nil? snt-amount)))
+ (fn [settings]
+   (tribute-to-talk/enabled? settings)))
 
 (re-frame/reg-sub
  :tribute-to-talk/settings-ui
@@ -68,7 +68,8 @@
  :<- [:tribute-to-talk/screen-params]
  :<- [:prices]
  :<- [:wallet/currency]
- (fn [[{:keys [seen? snt-amount message]}
+ (fn [[{:keys [seen? snt-amount message]
+        :as settings}
        {:keys [step editing? state error]
         :or {step :intro}
         screen-snt-amount :snt-amount
@@ -83,7 +84,7 @@
      (cond-> {:seen? seen?
               :snt-amount (tribute-to-talk/from-wei snt-amount)
               :message message
-              :disabled? (nil? snt-amount)
+              :enabled? (tribute-to-talk/enabled? settings)
               :error error
               :step step
               :state (or state (if snt-amount :completed :disabled))

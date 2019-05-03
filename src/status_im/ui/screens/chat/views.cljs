@@ -230,11 +230,12 @@
     :public-key chat-id
     :tribute-status tribute-status
     :style {:margin-horizontal 8
-            :align-self :flex-start}}])
+            :align-self (if snt-amount :flex-start :flex-end)}}])
 
 (defn one-to-one-chat-description-container
   [{:keys [chat-id name contact show-input? tribute-to-talk]
-    :tribute-to-talk/keys [message tribute-status snt-amount on-share-my-profile]}]
+    :tribute-to-talk/keys [my-message received?
+                           message tribute-status snt-amount on-share-my-profile]}]
   (case tribute-status
     :loading
     [react/view (assoc (dissoc style/empty-chat-container :flex)
@@ -265,16 +266,25 @@
      [tribute-to-talk-header name]
      [pay-to-chat-messages snt-amount message chat-id tribute-status]]
 
-    :paid
+    (:paid :none)
     [react/view
      [intro-header name]
-     [pay-to-chat-messages snt-amount message chat-id tribute-status]
-     [react/view {:style {:margin-top 16}}
-      [react/nested-text {:style style/tribute-received-note}
-       [{:style (assoc style/tribute-received-note :font-weight "500")}
-        name]
-       [{:style (assoc style/tribute-received-note :color colors/gray)}
-        (i18n/label :tribute-to-talk-contact-received-your-tribute)]]]]
+     (when (= tribute-status :paid)
+       [pay-to-chat-messages snt-amount message chat-id tribute-status])
+     (when received?
+       [pay-to-chat-messages nil my-message nil nil])
+
+     (when (or (= tribute-status :paid) received?)
+       [react/view {:style {:margin-top 16 :margin-horizontal 8}}
+        [react/nested-text {:style style/tribute-received-note}
+         (when received?
+           [{:style (assoc style/tribute-received-note :color colors/gray)}
+            (i18n/label :tribute-to-talk-tribute-received1)])
+         [{:style (assoc style/tribute-received-note :font-weight "500")}
+          name]
+         [{:style (assoc style/tribute-received-note :color colors/gray)}
+          (i18n/label (if received? :tribute-to-talk-tribute-received2
+                          :tribute-to-talk-contact-received-your-tribute))]]])]
 
     [intro-header name]))
 

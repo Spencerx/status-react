@@ -39,8 +39,8 @@
     (get-in db [:account/account :settings :tribute-to-talk chain-keyword])))
 
 (defn enabled?
-  [db]
-  (:snt-amount (get-settings db)))
+  [settings]
+  (:snt-amount settings))
 
 (defn- valid-tribute-tx?
   [db snt-amount tribute-tx-id from-public-key]
@@ -92,7 +92,7 @@
 
 (fx/defn enable-whitelist
   [{:keys [db] :as cofx}]
-  (if (enabled? db)
+  (if (enabled? (get-settings db))
     {:db (assoc db :contacts/whitelist
                 (get-contact-whitelist (vals (:contacts/contacts db))))}
     {:db (dissoc db :contacts/whitelist)}))

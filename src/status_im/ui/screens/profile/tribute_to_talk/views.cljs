@@ -281,31 +281,33 @@
                            :margin-left 4}}
        (i18n/label :t/tribute-to-talk)]]
      (when-not (string/blank? personalized-message)
-       [react/view {:style styles/chat-bubble}
-        [react/text personalized-message]])
-     [react/view {:style styles/pay-to-chat-bubble}
-      [react/nested-text {:style {:font-size 22}}
-       (str snt-amount)
-       [{:style {:font-size 22 :color colors/gray}} " SNT"]]
-      [react/nested-text
-       {:style {:font-size 12}}
-       (str "~" fiat-amount)
-       [{:style {:font-size 12 :color colors/gray}}
-        (str " " (:code fiat-currency))]]
-      (if (or (nil? public-key) (= tribute-status :required))
-        [react/view {:style styles/pay-to-chat-container}
-         [react/text (cond-> {:style styles/pay-to-chat-text}
-                       public-key
-                       (assoc :on-press
-                              #(re-frame/dispatch [:tribute-to-talk.ui/on-pay-to-chat-pressed
-                                                   public-key])))
-          (i18n/label :t/pay-to-chat)]]
-        [react/view {:style styles/payment-status-container}
-         [react/view {:style (styles/payment-status-icon (= tribute-status :pending))}
-          [icons/icon (if (= tribute-status :pending) :tiny-icons/tiny-pending :tiny-icons/tiny-check)
-           {:color (if (= tribute-status :pending) colors/black colors/white)}]]
-         [react/text {:style styles/payment-status-text}
-          (tribute-to-talk/status-label tribute-status snt-amount)]])]]))
+       [react/view {:style (styles/chat-bubble snt-amount)}
+        [react/text {:style {:color (if snt-amount colors/black colors/white)}}
+         personalized-message]])
+     (when snt-amount
+       [react/view {:style styles/pay-to-chat-bubble}
+        [react/nested-text {:style {:font-size 22}}
+         (str snt-amount)
+         [{:style {:font-size 22 :color colors/gray}} " SNT"]]
+        [react/nested-text
+         {:style {:font-size 12}}
+         (str "~" fiat-amount)
+         [{:style {:font-size 12 :color colors/gray}}
+          (str " " (:code fiat-currency))]]
+        (if true #_(or (nil? public-key) (= tribute-status :required))
+            [react/view {:style styles/pay-to-chat-container}
+             [react/text (cond-> {:style styles/pay-to-chat-text}
+                           public-key
+                           (assoc :on-press
+                                  #(re-frame/dispatch [:tribute-to-talk.ui/on-pay-to-chat-pressed
+                                                       public-key])))
+              (i18n/label :t/pay-to-chat)]]
+            [react/view {:style styles/payment-status-container}
+             [react/view {:style (styles/payment-status-icon (= tribute-status :pending))}
+              [icons/icon (if (= tribute-status :pending) :tiny-icons/tiny-pending :tiny-icons/tiny-check)
+               {:color (if (= tribute-status :pending) colors/black colors/white)}]]
+             [react/text {:style styles/payment-status-text}
+              (tribute-to-talk/status-label tribute-status snt-amount)]])])]))
 
 (defn learn-more [owner?]
   [react/view {:flex 1}

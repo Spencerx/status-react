@@ -17,7 +17,7 @@
   [{:keys [db all-contacts]}]
   (let [contacts-list (map #(vector (:public-key %) %) all-contacts)
         contacts (into {} contacts-list)
-        tr-to-talk-enabled? (tribute-to-talk/enabled? db)]
+        tr-to-talk-enabled? (-> db tribute-to-talk/get-settings tribute-to-talk/enabled?)]
     {:db (cond-> (-> db
                      (update :contacts/contacts #(merge contacts %))
                      (assoc :contacts/blocked (contact.db/get-blocked-contacts all-contacts)))

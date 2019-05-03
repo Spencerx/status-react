@@ -476,7 +476,7 @@
    (chat.db/active-chats contacts chats account)))
 
 (defn enrich-current-one-to-one-chat
-  [{:keys [contact] :as current-chat} my-public-key]
+  [{:keys [contact] :as current-chat} my-public-key ttt-settings]
   (let [{:keys [tribute-to-talk]} contact
         {:keys [disabled? snt-amount message]} tribute-to-talk
         whitelisted-by? (tribute-to-talk.db/whitelisted-by? contact)
@@ -494,6 +494,10 @@
              (tribute-to-talk.db/from-wei snt-amount)
              :tribute-to-talk/message
              message)
+
+      (tribute-to-talk.db/enabled? ttt-settings)
+      (assoc :tribute-to-talk/my-message (:message ttt-settings)
+             :tribute-to-talk/received?  (tribute-to-talk/tribute-received? contact))
 
       (= tribute-status :required)
       (assoc :tribute-to-talk/on-share-my-profile
@@ -526,12 +530,12 @@
  :<- [:mailserver/ranges]
  :<- [:chats/content-layout-height]
  :<- [:chats/current-chat-ui-prop :input-height]
- (fn [[chats current-chat-id my-public-key ranges height input-height]]
+ :<- [:tribute-to-talk/settings]
+ (fn [[chats current-chat-id my-public-key ranges height input-height ttt-settings]]
    (let [{:keys [group-chat contact messages]
           :as current-chat}
          (get chats current-chat-id)]
      (cond-> (enrich-current-chat current-chat ranges height input-height)
-
        (empty? messages)
        (assoc :universal-link
               (links/generate-link :public-chat :external current-chat-id))
@@ -544,7 +548,7 @@
        (assoc :show-input? true)
 
        (not group-chat)
-       (enrich-current-one-to-one-chat my-public-key)))))
+       (enrich-current-one-to-one-chat my-public-key ttt-settings)))))
 
 (reg-sub
  :chats/current-chat-message

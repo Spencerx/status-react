@@ -220,8 +220,8 @@
    :width             238
    :border-color      colors/gray-lighter})
 
-(def chat-bubble
-  {:background-color   colors/blue-light
+(defn chat-bubble [tribute-sender?]
+  {:background-color   (if tribute-sender? colors/blue-light colors/blue)
    :padding-horizontal 12
    :padding-vertical   6
    :margin-top         4

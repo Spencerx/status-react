@@ -320,6 +320,10 @@
   [contact]
   (contains? (:system-tags contact) :tribute-to-talk/paid))
 
+(defn tribute-received?
+  [contact]
+  (contains? (:system-tags contact) :tribute-to-talk/received))
+
 (fx/defn set-manifest-signing-flow
   [{:keys [db] :as cofx} hash]
   (let [contenthash (when hash
