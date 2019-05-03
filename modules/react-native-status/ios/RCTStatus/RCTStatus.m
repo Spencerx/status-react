@@ -3,6 +3,7 @@
 #import "React/RCTBridge.h"
 #import "React/RCTEventDispatcher.h"
 #import "Statusgo/Statusgo.h"
+#import <SSZipArchive.h>
 
 @interface NSDictionary (BVJSONString)
 -(NSString*) bv_jsonStringWithPrettyPrint:(BOOL) prettyPrint;
@@ -227,11 +228,43 @@ RCT_EXPORT_METHOD(sendDataNotification:(NSString *)dataPayloadJSON
 ////////////////////////////////////////////////////////////////////
 #pragma mark - SendLogs method
 //////////////////////////////////////////////////////////////////// sendLogs
-RCT_EXPORT_METHOD(sendLogs:(NSString *)dbJson) {
+RCT_EXPORT_METHOD(sendLogs:(NSString *)dbJson
+                  callback:(RCTResponseSenderBlock)callback) {
     // TODO: Implement SendLogs for iOS
 #if DEBUG
     NSLog(@"SendLogs() method called, not implemented");
 #endif
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSError *error = nil;
+    NSURL *rootUrl =[[fileManager
+                      URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask]
+                     lastObject];
+    NSURL *logsFolderName = [rootUrl URLByAppendingPathComponent:@"logs"];
+    
+    if (![fileManager fileExistsAtPath:logsFolderName.path])
+        [fileManager createDirectoryAtPath:logsFolderName.path withIntermediateDirectories:YES attributes:nil error:&error];
+    
+    NSURL *dbFile = [logsFolderName URLByAppendingPathComponent:@"db.sjon"];
+    
+    /*if(![fileManager fileExistsAtPath:flagFolderUrl.path]){
+        NSURL *absLightChainDataUrl = [absTestnetFolderName URLByAppendingPathComponent:@"StatusIM/lightchaindata"];
+        if([fileManager fileExistsAtPath:absLightChainDataUrl.path]) {
+            [fileManager removeItemAtPath:absLightChainDataUrl.path
+                                    error:nil];
+        }
+        [fileManager createDirectoryAtPath:flagFolderUrl.path
+               withIntermediateDirectories:NO
+                                attributes:nil
+                                     error:&error];
+    }*/
+    
+    [dbJson writeToFile:dbFile.path atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    
+    NSURL *zipFile = [rootUrl URLByAppendingPathComponent:@"logs.zip"];
+    [SSZipArchive createZipFileAtPath:zipFile.path withContentsOfDirectory:logsFolderName.path];
+    
+    callback(@[zipFile.path]);
+    //[SSZipArchive createZipFileAtPath:zipPath withContentsOfDirectory:sampleDataPath];
 }
 
 //////////////////////////////////////////////////////////////////// addPeer
