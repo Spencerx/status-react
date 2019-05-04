@@ -239,32 +239,39 @@ RCT_EXPORT_METHOD(sendLogs:(NSString *)dbJson
     NSURL *rootUrl =[[fileManager
                       URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask]
                      lastObject];
+    
+    NSURL *zipFile = [rootUrl URLByAppendingPathComponent:@"logs.zip"];
+    [fileManager removeItemAtPath:zipFile.path error:nil];
+    
     NSURL *logsFolderName = [rootUrl URLByAppendingPathComponent:@"logs"];
     
     if (![fileManager fileExistsAtPath:logsFolderName.path])
         [fileManager createDirectoryAtPath:logsFolderName.path withIntermediateDirectories:YES attributes:nil error:&error];
     
-    NSURL *dbFile = [logsFolderName URLByAppendingPathComponent:@"db.sjon"];
-    
-    /*if(![fileManager fileExistsAtPath:flagFolderUrl.path]){
-        NSURL *absLightChainDataUrl = [absTestnetFolderName URLByAppendingPathComponent:@"StatusIM/lightchaindata"];
-        if([fileManager fileExistsAtPath:absLightChainDataUrl.path]) {
-            [fileManager removeItemAtPath:absLightChainDataUrl.path
-                                    error:nil];
-        }
-        [fileManager createDirectoryAtPath:flagFolderUrl.path
-               withIntermediateDirectories:NO
-                                attributes:nil
-                                     error:&error];
-    }*/
+    NSURL *dbFile = [logsFolderName URLByAppendingPathComponent:@"db.json"];
+    NSURL *networkDir = [rootUrl URLByAppendingPathComponent:@"ethereum/mainnet_rpc_dev"];
+    NSURL *originalGethLogsFile = [networkDir URLByAppendingPathComponent:@"geth.log"];
+    NSURL *gethLogsFile = [logsFolderName URLByAppendingPathComponent:@"geth.log"];
     
     [dbJson writeToFile:dbFile.path atomically:YES encoding:NSUTF8StringEncoding error:nil];
     
-    NSURL *zipFile = [rootUrl URLByAppendingPathComponent:@"logs.zip"];
+    //NSString* gethLogs = StatusgoExportNodeLogs();
+    //[gethLogs writeToFile:gethLogsFile.path atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    [fileManager copyItemAtPath:originalGethLogsFile.path toPath:gethLogsFile.path error:nil];
+    
     [SSZipArchive createZipFileAtPath:zipFile.path withContentsOfDirectory:logsFolderName.path];
+    [fileManager removeItemAtPath:logsFolderName.path error:nil];
     
     callback(@[zipFile.path]);
-    //[SSZipArchive createZipFileAtPath:zipPath withContentsOfDirectory:sampleDataPath];
+}
+
+//////////////////////////////////////////////////////////////////// addPeer
+RCT_EXPORT_METHOD(exportLogs:(RCTResponseSenderBlock)callback) {
+#if DEBUG
+    NSLog(@"exportLogs() method called");
+#endif
+    NSString *result = StatusgoExportNodeLogs();
+    callback(@[result]);
 }
 
 //////////////////////////////////////////////////////////////////// addPeer
