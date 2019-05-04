@@ -249,6 +249,12 @@ RCT_EXPORT_METHOD(sendLogs:(NSString *)dbJson
         [fileManager createDirectoryAtPath:logsFolderName.path withIntermediateDirectories:YES attributes:nil error:&error];
     
     NSURL *dbFile = [logsFolderName URLByAppendingPathComponent:@"db.json"];
+#if DEBUG
+    NSString *networkDirPath = @"ethereum/mainnet_rpc_dev";
+#else
+    NSString *networkDirPath = @"ethereum/mainnet_rpc";
+#endif
+    
     NSURL *networkDir = [rootUrl URLByAppendingPathComponent:@"ethereum/mainnet_rpc_dev"];
     NSURL *originalGethLogsFile = [networkDir URLByAppendingPathComponent:@"geth.log"];
     NSURL *gethLogsFile = [logsFolderName URLByAppendingPathComponent:@"geth.log"];
